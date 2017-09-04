@@ -1,15 +1,12 @@
 ---
-title: API Reference
+title: PKU Helper 后端指南
 
 language_tabs:
-  - shell
-  - ruby
-  - python
-  - javascript
+  - raw
 
 toc_footers:
-  - <a href='#'>Sign Up for a Developer Key</a>
-  - <a href='https://github.com/tripit/slate'>Documentation Powered by Slate</a>
+  - 用Slate制作
+  - 2017-09-03
 
 includes:
   - errors
