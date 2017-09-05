@@ -19,6 +19,7 @@ Error Code | 解释
 503 | Service Unavailable
 
 > 一般的错误返回格式:
+
 ```json
 {
 	"status":   "error",
@@ -29,6 +30,7 @@ Error Code | 解释
 ```
 
 错误返回的参数一般包括以下字符串:
+
 参数 | 解释
 --- | -------
 status | 状态, 为 `error`
