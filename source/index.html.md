@@ -179,8 +179,136 @@ curl
 
 > 注意为了防止他人随意抓取ISA, `X-PKU-Integrity` 的要求仍然如旧, 即使这是 `GET` 操作.
 
+## Parser数据结果上报
+
+如果操作结果所对应的 `action` 为 `parse`, 你需要按照如下的统一格式上报服务器**最后一次收到的返回信息**:
+
+参数 | 描述
+---- | ----
+status | HTTP Status Code (e.g. 200)
+headers | 收到的所有HTTP Headers
+cookies | 做出request时的所有HTTP Cookie
+body | 返回的request body
+
+一般来讲不需要客户端对于数据做出判断 (因为客户端级别的数据识别很可能带来安全隐患, 或者闪退的可能), 从而这个脏活交由服务器来完成. 注意, 服务器并不是万能的. **它有可能返回失败的结果**, 如果parse出的数据不符合我们以往对这个接口返回值的经验, 或者有其他的异常.
+
+这种保守性可以确保返回值对客户端是可信的, 而不会造成其他的后果.
+
+> 一个成功的数据parse结果通常看起来像这样 (所有的返回数据都在 `payload` 对象内)
+
+```json
+{
+  "status": "success",
+  "payload": {
+    "coursesSelected": [
+      {
+        "id": 10002830,
+        "name": "飞行与魔法",
+        "department": "物理学院",
+        "slots": 30,
+        "selected": 47,
+        "type": 1,
+        "assignPoints": 98
+      }
+    ]
+  }
+}
+```
+
+> 一个失败的数据parse:
+
+```json
+{
+  "status": "error"
+}
+```
+
+<aside class="success">
+总而言之, parser的返回结果都是可信的而稳定的, 即便它倾向于返回不成功的值. 这是为了确保如果你收到 <code>success</code> 状态, 它真的是 <code>success</code> 而不是什么乱七八糟的regex给你的错误的结果.
+</aside>
+
+<aside class="warning">
+对于失败的parser尝试, 后端会进行数据的适当记录, 因为这一般意味着接口变动了或者我们遇到了没考虑的情况 (比如一个人有一些比较奇特的成绩或者课程)
+</aside>
+
 ## 具体的功能
 
 ### Dean "北京大学教务部" (本科)
 
-Dean作为一个多年来相对稳定的功能, 其操作描述变动不会特别大, 作为描述文件的熟悉工具再好不过了.
+Dean作为一个多年来相对稳定的功能, 其操作描述变动不会特别大, 作为描述文件的熟悉工具再好不过了. 目前Dean支持以下操作:
+
+**基本操作**
+
+- `getCaptcha` 获取验证码图片.
+- `login` 登录流程, 获取登录cookie. 在此之前, 你需要运行 `getCaptcha`. 接受参数: `{student_number}`, `{password}`, `{captcha}`.
+
+**功能性操作**
+所有功能性操作都应当在 `login` 完成之后进行.
+
+- `getGrades` 获取成绩. 其数据上报服务器处理, 处理结果如右图.
+
+> `getGrades` 的正常parser为 `POST /dean/parse_new_grade`. 其有两个模式, 你可以通过更改 `format` 参数的值来指定做出哪种返回.
+
+> `format` 为 `ordered` 时
+
+```json
+{
+  "status": "success",
+  "payload": 
+    [
+      {
+          "year": "15-16",
+          "term": "1",
+          "id": "00130201",
+          "type": "专业必修",
+          "name": "高等数学 (B) (一) Advanced Mathematics (B) (1)",
+          "credit": "5",
+
+          "status": "success",
+          "grade": "89",
+          "gp": "3.77"
+      },
+      {
+          "year": "15-16",
+          "term": "1",
+          "id": "00130202",
+          "type": "专业必修",
+          "name": "高等数学 (B) (二) Advanced Mathematics (B) (2)",
+          "credit": "5",
+
+          "status": "withdraw",
+          "grade": null,
+          "gp": null
+      }, 
+      ...
+     ]
+}
+```
+
+> `format` 为 `assoc` 时返回的则是Hash Table:
+
+```json
+{
+  "status": "success",
+  "payload": 
+    {
+      "00130201": {
+          "year": "15-16",
+          "term": "1",
+          "id": "00130201",
+          "type": "专业必修",
+          "name": "高等数学 (B) (一) Advanced Mathematics (B) (1)",
+          "credit": "5",
+
+          "status": "unsure",
+          "grade": null,
+          "gp": null,
+          "gradeUpperBound": 100,
+          "gradeLowerBound": 94
+      },
+      ...
+    }
+}
+```
+
+> 课程 `status` 可能是 `success`, `withdraw` 或者 `unsure`. 对应的参数变化如上.
