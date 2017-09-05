@@ -58,7 +58,7 @@ curl
 PKU Helper的上行信息全部采用密文传输, 即便是公开访问的API也使用一个预设的key. 使用何种秘钥会决定访问PKU Helper后端功能的权限, 因而一旦用户登陆后即可采用用户的key来进行传输. 
 
 <aside class="warning">
-**在开发模式中**, 你可以随时伪装访问任何PKU Helper用户账号, 并直接POST JSON内容, 这样方便你进行测试. 你只需要将 `Content-Type` 选择为 `application/json`. 如果你需要伪装一个具体的用户, 则用 `X-PKUHelper-AuthOverride-ID` header 来描述目标用户ID. 
+<strong>在开发模式中</strong>, 你可以随时伪装访问任何PKU Helper用户账号, 并直接POST JSON内容, 这样方便你进行测试. 你只需要将 `Content-Type` 选择为 `application/json`. 如果你需要伪装一个具体的用户, 则用 `X-PKUHelper-AuthOverride-ID` header 来描述目标用户ID. 
 
 注意, 开发模式的服务器是分开的. 部署服务器在任何条件下不会接受 `application/x.pku` 之外的访问类型.
 </aside>
@@ -174,7 +174,6 @@ curl
   -H "Authorization: 8faa2562030bc5be6b9160e6ddb3290dc0c4e1cf4fe47ae0a8d459baaa1ddd47"
   -H "X-PKU-Integrity: ..."
   -X GET
-  -d "$(</dev/stdin)"
   "https://api.pkuhelper/manifest/latestisa"
 ```
 
